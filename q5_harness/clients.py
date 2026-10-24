@@ -29,7 +29,7 @@ class AnthropicClient:
         ttft = None
         chunks = []
         kwargs = dict(model=self.model, max_tokens=self.max_tokens,
-                      temperature=self.temperature, messages=messages)
+                      messages=messages)
         if system:
             kwargs["system"] = system
         with self.client.messages.stream(**kwargs) as stream:

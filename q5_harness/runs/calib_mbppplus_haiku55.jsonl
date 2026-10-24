@@ -1,0 +1,21 @@
+{"meta": true, "provider": "anthropic", "model": "claude-haiku-5-5", "k": 1, "d": 1, "n_tasks": 20, "hide_examples": false, "started": "2026-10-24 14:27:40"}
+{"task": "Mbpp/637", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 118, "output_tokens": 69, "ttft_s": 0.6749, "model_s": 0.851, "tool_s": 0.0254}
+{"task": "Mbpp/394", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 107, "output_tokens": 86, "ttft_s": 0.6981, "model_s": 1.0665, "tool_s": 0.0391}
+{"task": "Mbpp/606", "attempt": 0, "iter": 0, "passed": false, "input_tokens": 100, "output_tokens": 55, "ttft_s": 0.677, "model_s": 1.0676, "tool_s": 0.0563}
+{"task": "Mbpp/310", "attempt": 0, "iter": 0, "passed": false, "input_tokens": 107, "output_tokens": 54, "ttft_s": 0.7489, "model_s": 1.0669, "tool_s": 0.0535}
+{"task": "Mbpp/253", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 105, "output_tokens": 218, "ttft_s": 1.4434, "model_s": 1.6108, "tool_s": 0.0571}
+{"task": "Mbpp/562", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 106, "output_tokens": 119, "ttft_s": 0.7074, "model_s": 0.8967, "tool_s": 0.057}
+{"task": "Mbpp/598", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 105, "output_tokens": 98, "ttft_s": 0.5947, "model_s": 1.0047, "tool_s": 0.0483}
+{"task": "Mbpp/131", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 116, "output_tokens": 197, "ttft_s": 0.481, "model_s": 1.0481, "tool_s": 0.0282}
+{"task": "Mbpp/615", "attempt": 0, "iter": 0, "passed": false, "input_tokens": 116, "output_tokens": 361, "ttft_s": 2.2074, "model_s": 2.4614, "tool_s": 0.0771}
+{"task": "Mbpp/257", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 117, "output_tokens": 62, "ttft_s": 0.4972, "model_s": 0.7318, "tool_s": 0.0508}
+{"task": "Mbpp/311", "attempt": 0, "iter": 0, "passed": false, "input_tokens": 106, "output_tokens": 488, "ttft_s": 2.8692, "model_s": 3.1608, "tool_s": 0.0673}
+{"task": "Mbpp/782", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 108, "output_tokens": 104, "ttft_s": 0.5086, "model_s": 0.8515, "tool_s": 0.0526}
+{"task": "Mbpp/141", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 100, "output_tokens": 300, "ttft_s": 0.7874, "model_s": 1.6994, "tool_s": 0.0546}
+{"task": "Mbpp/170", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 117, "output_tokens": 566, "ttft_s": 2.5855, "model_s": 2.7819, "tool_s": 0.0333}
+{"task": "Mbpp/70", "attempt": 0, "iter": 0, "passed": false, "input_tokens": 106, "output_tokens": 414, "ttft_s": 2.0619, "model_s": 2.3902, "tool_s": 0.07}
+{"task": "Mbpp/610", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 120, "output_tokens": 389, "ttft_s": 2.191, "model_s": 2.6391, "tool_s": 0.0291}
+{"task": "Mbpp/233", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 113, "output_tokens": 68, "ttft_s": 0.7639, "model_s": 0.9156, "tool_s": 0.027}
+{"task": "Mbpp/101", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 110, "output_tokens": 222, "ttft_s": 1.1186, "model_s": 1.4194, "tool_s": 0.0264}
+{"task": "Mbpp/471", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 109, "output_tokens": 226, "ttft_s": 1.397, "model_s": 1.6226, "tool_s": 0.0499}
+{"task": "Mbpp/597", "attempt": 0, "iter": 0, "passed": false, "input_tokens": 112, "output_tokens": 1157, "ttft_s": 3.9389, "model_s": 5.0999, "tool_s": 0.0685}

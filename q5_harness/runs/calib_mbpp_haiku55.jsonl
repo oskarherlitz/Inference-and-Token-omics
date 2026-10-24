@@ -1,0 +1,16 @@
+{"meta": true, "provider": "anthropic", "model": "claude-haiku-5-5", "k": 1, "d": 1, "n_tasks": 15, "hide_examples": false, "started": "2026-10-24 14:19:40"}
+{"task": "MBPP/429", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 119, "output_tokens": 86, "ttft_s": 0.7508, "model_s": 0.9817, "tool_s": 0.0427}
+{"task": "MBPP/446", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 114, "output_tokens": 194, "ttft_s": 1.2278, "model_s": 1.4886, "tool_s": 0.043}
+{"task": "MBPP/226", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 108, "output_tokens": 153, "ttft_s": 1.3287, "model_s": 1.4887, "tool_s": 0.043}
+{"task": "MBPP/68", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 107, "output_tokens": 132, "ttft_s": 1.1573, "model_s": 1.5034, "tool_s": 0.0325}
+{"task": "MBPP/12", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 113, "output_tokens": 64, "ttft_s": 1.6125, "model_s": 1.7699, "tool_s": 0.0602}
+{"task": "MBPP/116", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 111, "output_tokens": 86, "ttft_s": 0.5209, "model_s": 0.7475, "tool_s": 0.0435}
+{"task": "MBPP/249", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 111, "output_tokens": 381, "ttft_s": 2.0069, "model_s": 2.2847, "tool_s": 0.0382}
+{"task": "MBPP/98", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 113, "output_tokens": 340, "ttft_s": 2.0704, "model_s": 2.3519, "tool_s": 0.027}
+{"task": "MBPP/106", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 107, "output_tokens": 147, "ttft_s": 0.9918, "model_s": 1.0188, "tool_s": 0.0486}
+{"task": "MBPP/439", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 107, "output_tokens": 175, "ttft_s": 1.1058, "model_s": 1.2734, "tool_s": 0.0466}
+{"task": "MBPP/137", "attempt": 0, "iter": 0, "passed": false, "input_tokens": 114, "output_tokens": 627, "ttft_s": 3.1805, "model_s": 3.4668, "tool_s": 0.0674}
+{"task": "MBPP/115", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 109, "output_tokens": 59, "ttft_s": 1.7768, "model_s": 1.9535, "tool_s": 0.0447}
+{"task": "MBPP/260", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 107, "output_tokens": 809, "ttft_s": 3.2601, "model_s": 3.6531, "tool_s": 0.0409}
+{"task": "MBPP/438", "attempt": 0, "iter": 0, "passed": false, "input_tokens": 107, "output_tokens": 799, "ttft_s": 3.3476, "model_s": 3.7511, "tool_s": 0.0448}
+{"task": "MBPP/307", "attempt": 0, "iter": 0, "passed": true, "input_tokens": 109, "output_tokens": 914, "ttft_s": 4.7028, "model_s": 4.8927, "tool_s": 0.0469}
