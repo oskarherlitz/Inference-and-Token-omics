@@ -155,13 +155,16 @@ def main():
     model_t = sum(s["model_s"] for s in steps)
     tool_t = sum(s["tool_s"] + EXTRA_TOOL_S for s in steps)
     ttft_t = sum(s["ttft_s"] for s in steps)
-    share = model_t / (model_t + tool_t)
+    total_t = model_t + tool_t
+    share = model_t / total_t if total_t > 0 else 0.0
     say(f"\n## Where agent time goes")
     say(f"Model calls {share:.0%} of step time (of which time-to-first-token "
-        f"{ttft_t / model_t:.0%}), tool/test execution {1 - share:.0%}.")
+        f"{ttft_t / model_t:.0%} of model time), tool/test execution {1 - share:.0%}."
+        if model_t > 0 else "No successful model calls recorded.")
     tok_cost = sum((x["input_tokens"] * a.price_in + x["output_tokens"] * a.price_out) / 1e6 for x in steps)
-    say(f"Token spend per hour of agent time: ${tok_cost / ((model_t + tool_t) / 3600):.2f} "
-        f"(compare with the ${a.wage}/hr of a waiting human).")
+    say(f"Token spend per hour of agent time: ${tok_cost / (total_t / 3600):.2f} "
+        f"(compare with the ${a.wage}/hr of a waiting human)."
+        if total_t > 0 else f"Total token cost: ${tok_cost:.4f}")
     say(f"Amdahl ceiling: 10x faster model -> at most {1 / (1 - share + share / 10):.1f}x "
         f"faster agent steps.")
 

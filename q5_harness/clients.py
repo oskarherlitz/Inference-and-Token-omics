@@ -56,17 +56,29 @@ class OpenAICompatClient:
         msgs = ([{"role": "system", "content": system}] if system else []) + messages
         t0 = time.perf_counter()
         ttft, chunks, usage = None, [], None
-        stream = self.client.chat.completions.create(
-            model=self.model, messages=msgs, max_tokens=self.max_tokens,
-            temperature=self.temperature, stream=True,
-            stream_options={"include_usage": True})
-        for ev in stream:
-            if ev.choices and ev.choices[0].delta.content:
-                if ttft is None:
-                    ttft = time.perf_counter() - t0
-                chunks.append(ev.choices[0].delta.content)
-            if getattr(ev, "usage", None):
-                usage = ev.usage
+        # stream_options is OpenAI-native; some compatible endpoints reject it.
+        # Try with usage first, fall back silently if the endpoint refuses.
+        for kwargs in (
+            {"stream_options": {"include_usage": True}},
+            {},
+        ):
+            try:
+                stream = self.client.chat.completions.create(
+                    model=self.model, messages=msgs, max_tokens=self.max_tokens,
+                    temperature=self.temperature, stream=True, **kwargs)
+                for ev in stream:
+                    if ev.choices and ev.choices[0].delta.content:
+                        if ttft is None:
+                            ttft = time.perf_counter() - t0
+                        chunks.append(ev.choices[0].delta.content)
+                    if getattr(ev, "usage", None):
+                        usage = ev.usage
+                break  # success
+            except Exception:
+                if not kwargs:
+                    raise  # both attempts failed; propagate
+                t0 = time.perf_counter()
+                ttft, chunks, usage = None, [], None
         total = time.perf_counter() - t0
         text = "".join(chunks)
         in_tok = usage.prompt_tokens if usage else sum(len(m["content"]) // 4 for m in msgs)

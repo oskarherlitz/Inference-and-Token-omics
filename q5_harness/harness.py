@@ -121,7 +121,10 @@ def main():
         with ThreadPoolExecutor(a.workers) as ex:
             futs = [ex.submit(run_attempt, client, t, i, a.d, mock, log, lock) for t, i in jobs]
             for n, f in enumerate(as_completed(futs), 1):
-                f.result()
+                try:
+                    f.result()
+                except Exception as e:
+                    print(f"  WARNING: worker raised {e!r}", flush=True)
                 if n % 10 == 0 or n == len(futs):
                     print(f"  {n}/{len(futs)} attempts done", flush=True)
     print(f"Logged to {out}")
