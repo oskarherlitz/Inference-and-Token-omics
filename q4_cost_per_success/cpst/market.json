@@ -1,0 +1,14 @@
+{
+  "_note": "Market evidence and forecast for Q1, from the team write-up. Shares are the open-weight share, in percent. Edit here; report.py embeds this into the dashboard.",
+  "question": "What will be the split of token spending between frontier and open-source models? A year from now, will frontier labs still sit on the intelligence-per-dollar frontier, or will smaller labs match them for less?",
+  "today": [
+    {"label": "Vercel AI Gateway, Sept 2026", "tokens": 71.5, "spend": 23,
+     "url": "https://vercel.com/blog/ai-gateway-production-index-october-2026"},
+    {"label": "OpenRouter, Sept 2026", "tokens": 72, "spend": 27, "approx": true,
+     "url": "https://openrouter.ai/data/newsletter/the-token-state-of-play"}
+  ],
+  "forecast": {"label": "Our forecast, Oct 2027", "tokens": 80, "spend": 40,
+               "scope": "developer-oriented inference gateways"},
+  "caveat": "These are developer gateway samples, not the whole market. Direct contracts with proprietary labs, consumer apps, and self-hosted open models are underrepresented.",
+  "cost_decline": {"label": "Epoch AI: cost of reaching a fixed performance level falls about 13x per year", "factor": 13}
+}

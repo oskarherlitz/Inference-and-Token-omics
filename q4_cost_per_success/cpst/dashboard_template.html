@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What does a finished AI task really cost?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light;
+  --paper: #eef1f0; --card: #ffffff; --ink: #1e2a32; --muted: #56656f; --rule: #cfd6da;
+  --bad: #b3261e; --bad-wash: #fbe9e7; --good: #1d6b52; --good-wash: #e3f1eb; --grey: #a9b4bb;
+  --open: #2f6db3; --open-wash: #e4edf8; --closed: #b8742a; --closed-wash: #f6ecdf;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #13191d; --card: #1b2328; --ink: #e3e9ec; --muted: #9aaab4; --rule: #34424a;
+    --bad: #f2766b; --bad-wash: #3a2220; --good: #5cc29a; --good-wash: #17322a; --grey: #5d6c75;
+    --open: #6aa8f0; --open-wash: #1a2a3d; --closed: #e0a35a; --closed-wash: #3a2c1a;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #13191d; --card: #1b2328; --ink: #e3e9ec; --muted: #9aaab4; --rule: #34424a;
+  --bad: #f2766b; --bad-wash: #3a2220; --good: #5cc29a; --good-wash: #17322a; --grey: #5d6c75;
+    --open: #6aa8f0; --open-wash: #1a2a3d; --closed: #e0a35a; --closed-wash: #3a2c1a;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--paper); color: var(--ink);
+  font-family: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+main { max-width: 1060px; margin: 0 auto; padding: 40px 20px 72px; }
+h1 { font-size: clamp(30px, 4.6vw, 46px); line-height: 1.08; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 14px; max-width: 20ch; }
+h2 { font-size: 23px; font-weight: 600; letter-spacing: -0.01em; margin: 64px 0 8px; }
+h3 { margin: 0; font-size: 17px; font-weight: 600; }
+p { max-width: 68ch; margin: 0 0 12px; }
+.lede { color: var(--muted); font-size: 17px; }
+code, pre { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13.5px; }
+pre { background: var(--card); padding: 12px 14px; border-radius: 6px; overflow-x: auto; margin: 8px 0 0; }
+.banner { border: 1px solid var(--bad); color: var(--bad); background: var(--bad-wash); padding: 8px 12px; border-radius: 6px; font-size: 14px; margin: 18px 0 0; max-width: 72ch; }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--good); outline-offset: 2px; }
+
+.ask { margin: 34px 0 0; }
+.ask-label { font-weight: 600; margin: 0 0 10px; }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg button { font: inherit; font-size: 15px; padding: 8px 16px; border-radius: 999px; cursor: pointer; border: 1px solid var(--rule); background: var(--card); color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+.answer { margin: 26px 0 0; font-size: clamp(19px, 2.3vw, 23px); line-height: 1.4; max-width: 46ch; font-weight: 500; }
+.answer b { font-weight: 700; }
+.answer-sub { color: var(--muted); margin-top: 10px; max-width: 70ch; }
+
+.costs { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px 28px; margin: 22px 0 0; max-width: 760px; }
+.cost label { display: block; font-size: 14px; color: var(--muted); }
+.cost label strong { color: var(--ink); font-size: 16px; }
+.cost input { width: 100%; accent-color: var(--ink); }
+.hint { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+.options { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; row-gap: 16px; margin: 26px 0 0; }
+.opt { background: var(--card); border-radius: 6px; padding: 18px 18px 16px; border: 2px solid transparent; display: grid; grid-row: span 9; grid-template-rows: subgrid; row-gap: 10px; align-content: start; }
+.opt.best { border-color: var(--good); }
+.opt .top { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
+.badge { font-size: 12.5px; font-weight: 600; color: var(--good); background: var(--good-wash); padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.how { font-size: 13.5px; color: var(--muted); }
+.big { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+.big-lab { font-size: 13.5px; color: var(--muted); margin-top: 4px; }
+.sticker { font-size: 13px; color: var(--muted); border-top: 1px dashed var(--rule); padding-top: 8px; }
+.bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--rule); }
+.bar span { display: block; height: 100%; }
+.bar .r { background: var(--good); } .bar .w { background: var(--bad); } .bar .g { background: var(--grey); }
+.bar-lab { font-size: 13.5px; }
+.bar-lab .w { color: var(--bad); font-weight: 600; }
+.total { border-top: 1px solid var(--rule); padding-top: 10px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 14px; }
+.total strong { font-size: 18px; }
+.opt button { font: inherit; font-size: 14px; align-self: start; background: none; border: 0; padding: 0; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+.key { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13.5px; color: var(--muted); margin: 14px 0 0; }
+.key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+.meter-head { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 18px 0 10px; }
+.meter-head select { font: inherit; font-size: 15px; padding: 6px 10px; background: var(--card); color: var(--ink); border: 1px solid var(--rule); border-radius: 6px; max-width: 100%; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.filters button { font: inherit; font-size: 13.5px; padding: 4px 12px; border-radius: 999px; cursor: pointer; border: 1px solid var(--rule); background: transparent; color: var(--ink); }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.tally { background: var(--card); border-radius: 6px; padding: 14px 16px; margin: 0 0 10px; max-width: 100%; }
+.tally .eq { font-size: 17px; margin-top: 4px; }
+.tally .eq strong { font-size: 20px; }
+
+.ledger details { background: var(--card); border-radius: 6px; margin: 0 0 6px; }
+.ledger summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 196px 1fr auto auto; gap: 14px; align-items: center; padding: 10px 14px; }
+.ledger summary::-webkit-details-marker { display: none; }
+@media (max-width: 640px) { .ledger summary { grid-template-columns: 1fr auto; } .ledger .pv { grid-column: 1 / -1; order: -1; } }
+.out { font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 999px; justify-self: start; white-space: nowrap; }
+.out.correct { color: var(--good); background: var(--good-wash); }
+.out.wrong { color: var(--bad); background: var(--bad-wash); }
+.out.gave_up { color: var(--muted); background: var(--paper); }
+.pv { font-size: 14.5px; min-width: 0; }
+.marks { display: flex; gap: 4px; }
+.mk { width: 22px; height: 22px; border-radius: 4px; display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+.mk.rej { border: 1.5px solid var(--grey); color: var(--muted); }
+.mk.ok { background: var(--good); color: var(--card); }
+.mk.bad { background: var(--bad); color: var(--card); }
+.mk.sw { margin-left: 6px; }
+.lcost { font-size: 14px; min-width: 76px; text-align: right; }
+.steps { padding: 0 14px 12px; overflow-x: auto; }
+.steps table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+.steps th, .steps td { text-align: left; padding: 6px 8px; border-top: 1px solid var(--rule); vertical-align: top; }
+.steps th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+.steps td.n { text-align: right; white-space: nowrap; }
+.why-bad { color: var(--bad); }
+.more { font: inherit; font-size: 14px; margin-top: 8px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--rule); background: var(--card); color: var(--ink); cursor: pointer; }
+
+.how-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 16px 0 0; padding: 0; list-style: none; counter-reset: s; }
+.how-steps li { background: var(--card); border-radius: 6px; padding: 16px; counter-increment: s; }
+.how-steps li::before { content: counter(s); display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--paper); font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+.how-steps p { font-size: 15px; margin: 4px 0 0; }
+
+details.provider { margin-top: 64px; background: var(--card); border-radius: 6px; padding: 4px 18px; }
+details.provider > summary { cursor: pointer; font-size: 19px; font-weight: 600; padding: 12px 0; }
+.bills { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 8px 0 12px; }
+@media (max-width: 760px) { .bills { grid-template-columns: 1fr; } }
+.bill { border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; }
+.line { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-top: 1px dashed var(--rule); font-size: 14.5px; }
+.line.waste { color: var(--bad); font-weight: 600; } .line.free { color: var(--good); font-weight: 600; }
+.bill .tot { display: flex; justify-content: space-between; border-top: 2px solid var(--ink); margin-top: 4px; padding-top: 8px; font-weight: 700; }
+.prov-controls { display: grid; gap: 8px; max-width: 520px; font-size: 14px; color: var(--muted); }
+.prov-controls input { accent-color: var(--good); }
+.prov-controls select { font: inherit; font-size: 14px; padding: 4px 8px; background: var(--card); color: var(--ink); border: 1px solid var(--rule); border-radius: 4px; }
+.wt { display: inline-block; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-top: -4px; justify-self: start; align-self: start; }
+a { color: inherit; text-underline-offset: 3px; }
+.wt.open { color: var(--open); background: var(--open-wash); } .wt.closed { color: var(--closed); background: var(--closed-wash); }
+.wt.mix { color: var(--ink); background: linear-gradient(90deg, var(--open-wash), var(--closed-wash)); }
+.q1 { margin-top: 56px; background: var(--card); border-radius: 8px; padding: 22px 22px 18px; }
+.q1 h2 { margin: 0 0 6px; }
+.split-head, .split-row { display: grid; grid-template-columns: minmax(150px, 240px) 1fr 1fr; gap: 8px 20px; align-items: center; }
+.split-head { font-size: 13.5px; color: var(--muted); margin-top: 14px; padding-bottom: 6px; }
+.split-row { padding: 9px 0; border-top: 1px solid var(--rule); }
+.split-row .who { font-size: 14.5px; } .split-row .who small { display: block; color: var(--muted); font-size: 12.5px; }
+.split-row.you .who { font-weight: 600; }
+.track { position: relative; height: 26px; border-radius: 4px; background: var(--closed); overflow: hidden; }
+.track .fill { position: absolute; inset: 0 auto 0 0; background: var(--open); transition: width .25s; }
+@media (prefers-reduced-motion: reduce) { .track .fill { transition: none; } }
+.track .lab { position: absolute; inset: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 8px; font-size: 13px; font-weight: 600; color: #fff; }
+.split-row.you .track { outline: 2px dashed var(--ink); outline-offset: 2px; }
+.bk { display: none; font-size: 12.5px; color: var(--muted); margin-bottom: 3px; }
+@media (max-width: 640px) { .split-head { display: none; } .split-row { grid-template-columns: 1fr; gap: 6px; } .bk { display: block; } }
+.split-key { display: flex; flex-wrap: wrap; gap: 18px; font-size: 13.5px; color: var(--muted); margin: 10px 0 0; }
+.split-key i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -2px; }
+.q1 .verdict { font-size: 17px; margin: 14px 0 0; max-width: 70ch; }
+footer { margin-top: 48px; color: var(--muted); font-size: 14px; }
+footer p { margin: 6px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>What does a finished AI task really cost?</h1>
+  <p class="lede">The price per token is like the price of a gallon of gas. What you actually pay for is the cost per mile: each answer that turns out to be right, counting the retries, the failures, and the wrong answers that looked fine. This page measures that for real tasks.</p>
+  <div id="banner"></div>
+
+  <section class="ask" aria-labelledby="askLabel">
+    <p class="ask-label" id="askLabel">What kind of work are you giving the AI?</p>
+    <div class="seg" id="seg" role="group" aria-labelledby="askLabel"></div>
+    <p class="answer" id="answer" aria-live="polite"></p>
+    <p class="answer-sub" id="answerSub"></p>
+
+    <div class="costs">
+      <div class="cost">
+        <label for="cw">If a wrong answer slips through, fixing it later costs you about <strong id="cwv"></strong></label>
+        <input id="cw" type="range" min="0" max="12" step="1" value="6">
+        <div class="hint">A wrong total paid to a vendor, or a bug in shipped code.</div>
+      </div>
+      <div class="cost">
+        <label for="cm">If the AI gives up, doing the task yourself costs about <strong id="cmv"></strong></label>
+        <input id="cm" type="range" min="0" max="12" step="1" value="5">
+        <div class="hint">You know these failed, so they cost time but not trust. Set both to $0 to compare AI bills only.</div>
+      </div>
+    </div>
+
+    <div class="options" id="options"></div>
+    <div class="key">
+      <span><i style="background:var(--good)"></i>right</span>
+      <span><i style="background:var(--bad)"></i>looked right, was wrong</span>
+      <span><i style="background:var(--grey)"></i>gave up</span>
+    </div>
+  </section>
+
+  <section class="q1" aria-labelledby="q1Title">
+    <h2 id="q1Title">Add up every buyer’s choice and you get the market split</h2>
+    <p class="lede">The recommendation above is one buyer’s decision. Here are the choices the tool recommends for all three kinds of work at the mistake cost you set, added up, next to real gateway data and our forecast for Question 1. Move the mistake-cost slider and watch where the money goes.</p>
+    <div class="cost" style="max-width:520px;margin-top:14px">
+      <label for="cw2">If a wrong answer slips through, fixing it later costs you about <strong id="cw2v"></strong></label>
+      <input id="cw2" type="range" min="0" max="12" step="1">
+    </div>
+    <div id="q1bars"></div>
+    <div class="split-key"><span><i style="background:var(--open)"></i>open-weight models</span><span><i style="background:var(--closed)"></i>proprietary models</span></div>
+    <p class="verdict" id="q1text" aria-live="polite"></p>
+  </section>
+
+  <section aria-labelledby="meterTitle">
+    <h2 id="meterTitle">Watch the meter</h2>
+    <p class="lede">Every number above comes from this ledger. Each row is one task. Each square is one call to a model: an empty square was rejected by the automatic check and retried, a filled one passed. Open a row to see what each call cost and what went wrong.</p>
+    <div class="meter-head">
+      <select id="pick" aria-label="Option to inspect"></select>
+      <div class="filters" id="filters" role="group" aria-label="Show tasks"></div>
+    </div>
+    <div class="tally" id="tally"></div>
+    <div class="ledger" id="ledger"></div>
+    <button class="more" id="more" type="button"></button>
+  </section>
+
+  <section aria-labelledby="howTitle">
+    <h2 id="howTitle">How the measurement works</h2>
+    <ol class="how-steps">
+      <li><h3>Run</h3><p>Give every model the same real tasks: coding problems, and invoices where every field has to be pulled out exactly.</p></li>
+      <li><h3>Check, then grade</h3><p>An automatic check (unit tests, or math and source checks for invoices) accepts or rejects each answer, and rejected answers get retried with the reason. Separately, every answer is graded against the true answer, which the model never sees.</p></li>
+      <li><h3>Count</h3><p>Add up every call, including the failed ones, and divide by the answers that were actually right. That is the cost per correct answer.</p></li>
+    </ol>
+    <p style="margin-top:18px">The gap between the check and the grade is the point. A cheap model’s mistakes are fine when the check catches them, because a retry costs a fraction of a cent. They are expensive when they slip through, because then they cost you.</p>
+    <p>To measure your own work, wrap your AI calls with the meter and the same report comes out:</p>
+<pre>from meter import Meter
+meter = Meter("runs/mine.jsonl")
+with meter.task("invoice-42") as t:
+    resp = client.chat.completions.create(...)
+    t.record_openai(resp, model="deepseek-v4-flash", verified=my_check(resp))
+print(meter.invoice())</pre>
+  </section>
+
+  <details class="provider" id="provider">
+    <summary>For AI providers: charge per correct answer instead of per token</summary>
+    <p class="lede">Today the customer pays for every failed attempt. A provider that measures cost per correct answer can price per success instead, carry the failure risk itself, and keep the savings from smart routing as margin.</p>
+    <div class="bills" id="bills"></div>
+    <div class="prov-controls">
+      <label for="margin">Provider margin: <strong id="marginv"></strong></label>
+      <input id="margin" type="range" min="0" max="0.9" step="0.05" value="0.3">
+      <label for="billon">Charge for</label>
+      <select id="billon">
+        <option value="correct">answers the customer accepts</option>
+        <option value="verified">answers that pass the automatic check</option>
+      </select>
+      <p id="risk" style="margin:4px 0 14px"></p>
+    </div>
+  </details>
+
+  <footer id="foot"></footer>
+</main>
+
+<script>
+const DATA = /*__DATA__*/null;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const usd = (x) => {
+  if (x === null || x === undefined || !isFinite(x)) return "n/a";
+  const a = Math.abs(x);
+  if (a === 0) return "$0";
+  if (a >= 1000) return "$" + Math.round(x).toLocaleString("en-US");
+  if (a >= 10) return "$" + x.toFixed(0);
+  if (a >= 1) return "$" + x.toFixed(2);
+  if (a >= 0.1) return "$" + x.toFixed(2);
+  if (a >= 0.01) return "$" + x.toFixed(3);
+  return "$" + x.toPrecision(2);
+};
+const per1k = (x) => (x === null || x === undefined) ? null : x * 1000;
+const STEPS = [0, 0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 20, 50, 100];
+const FIELD = {vendor: "vendor", customer: "customer", invoice_number: "invoice number", invoice_date: "invoice date",
+  due_date: "due date", subtotal: "subtotal", tax_rate_pct: "tax rate", total_due: "total due", answer: "answer"};
+const OUT = {correct: "Right", wrong: "Looked right, was wrong", gave_up: "Gave up"};
+const label = (m) => (DATA.meta.labels || {})[m] || m;
+const fmtVal = (k, v) => {
+  const n = Number(v);
+  if (["subtotal", "total_due"].includes(k) && isFinite(n)) return "$" + n.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  if (k === "tax_rate_pct" && isFinite(n)) return n.toFixed(2) + "%";
+  return v;
+};
+
+let segKey = DATA.user[0].key, inspect = null, filter = "all", shown = 12;
+let cw = STEPS[6], cm = STEPS[5];
+
+const seg = () => DATA.user.find((s) => s.key === segKey);
+const perTask = (o) => o.total_cost / o.n + (o.wrong / o.n) * cw + (o.gave_up / o.n) * cm;
+const sticker = (o) => {
+  const p = DATA.meta.prices || {};
+  const ms = [...new Set(o.stages.map((s) => s[0]))];
+  if (ms.length > 1) return "Mix of models, billed per token";
+  const pr = p[ms[0]];
+  return pr ? `Sticker price: $${pr.in.toFixed(2)} in, $${pr.out.toFixed(2)} out per million tokens` : "";
+};
+
+const isOpen = (m) => ((DATA.meta || {}).weights || {})[m] === "open";
+const wkind = (o) => { const w = new Set(o.stages.map((st) => isOpen(st[0]))); return w.size > 1 ? "mix" : w.has(true) ? "open" : "closed"; };
+const wlabel = (o) => ({open: "open-weight", closed: "proprietary", mix: "open first, proprietary if needed"})[wkind(o)];
+const pctA = (v) => { const p = 100 * v, r = Math.round(p);
+  return (Math.abs(p * 10 - Math.round(p * 10)) < 1e-6 && Math.abs(p - r) > 1e-6 ? p.toFixed(1) : r) + "%"; };
+function splitOf(ledgers) {
+  let ot = 0, ct = 0, od = 0, cd = 0;
+  for (const led of ledgers) for (const x of led) for (const st of x.steps) {
+    const t = st.tok.reduce((a, b) => a + b, 0);
+    if (isOpen(st.m)) { ot += t; od += st.cost; } else { ct += t; cd += st.cost; } }
+  return {tokens: ot / (ot + ct || 1), spend: od / (od + cd || 1)};
+}
+const bestAt = (S, w, m) => [...S.options].sort((a, b) =>
+  (a.total_cost + a.wrong * w + a.gave_up * m) - (b.total_cost + b.wrong * w + b.gave_up * m) || b.correct - a.correct)[0];
+function track(v, kind) {
+  return `<div class="bk">${kind}</div><div class="track" role="img" aria-label="${kind}: ${pctA(v)} open-weight"><div class="fill" style="width:${(100 * v).toFixed(1)}%"></div>
+    <div class="lab"><span>${v >= 0.08 ? pctA(v) : ""}</span><span>${1 - v >= 0.08 ? pctA(1 - v) : ""}</span></div></div>`;
+}
+function renderQ1() {
+  $("cw2").value = STEPS.indexOf(cw); $("cw2v").textContent = usd(cw); $("cw").value = STEPS.indexOf(cw);
+  const picks = DATA.user.map((S) => ({S, o: bestAt(S, cw, cm)}));
+  const you = splitOf(picks.map((p) => p.o.ledger));
+  const MK = DATA.market || {};
+  const rows = [{label: "Your choices", sub: "all three kinds of work, at your mistake cost", tokens: you.tokens, spend: you.spend, you: true}]
+    .concat((MK.today || []).slice(0, 1).map((t) => ({label: t.label, sub: `<a href="${esc(t.url)}">gateway data</a>`, tokens: t.tokens / 100, spend: t.spend / 100})))
+    .concat(MK.forecast ? [{label: MK.forecast.label, sub: "our answer to Question 1", tokens: MK.forecast.tokens / 100, spend: MK.forecast.spend / 100}] : []);
+  $("q1bars").innerHTML = `<div class="split-head"><span></span><span>Share of tokens</span><span>Share of spending</span></div>`
+    + rows.map((r) => `<div class="split-row${r.you ? " you" : ""}"><div class="who">${esc(r.label)}<small>${r.sub}</small></div><div>${track(r.tokens, "Share of tokens")}</div><div>${track(r.spend, "Share of spending")}</div></div>`).join("");
+  // where does buying shift toward the frontier?
+  const shareAt = (w) => splitOf(DATA.user.map((S) => bestAt(S, w, cm).ledger)).spend;
+  let flip = null, before = null, after = null;
+  for (let i = 0; i <= 200; i++) { const w = i === 0 ? 0 : Math.pow(10, -3 + 5 * i / 200);
+    const sh = shareAt(w); if (before === null) before = sh;
+    if (Math.abs(sh - before) > 0.05) { flip = w; after = sh; break; } before = sh; }
+  const list = picks.map((p) => `${esc(p.o.title)} for ${esc(p.S.label.toLowerCase())}`).join(", ");
+  const gap = you.tokens - you.spend;
+  let t = `At ${usd(cw)} per slipped mistake, the tool picks ${list}. Open-weight models get ${pctA(you.tokens)} of the tokens ${gap > 0.05 ? "but only" : "and"} ${pctA(you.spend)} of the spending.`;
+  if (flip !== null) t += ` Once a slipped mistake costs more than about ${usd(flip)}, buyers start paying for proprietary models on the hard work: the open-weight share of spending ${after < before ? "falls" : "rises"} from ${pctA(before)} to ${pctA(after)}, while the token share barely moves.`;
+  const nAll = DATA.user.reduce((a, S) => a + S.n, 0), hardShare = DATA.user.filter((S) => S.key === 'doc_messy').reduce((a, S) => a + S.n, 0) / (nAll || 1);
+  if (gap > 0.05) t += ` That is the direction in our answer: open models do most of the work, and money follows reliability to proprietary models wherever a wrong answer is expensive and hard to catch.`;
+  if (you.spend > 0.5 && gap > 0.05) t += ` Here open models still keep most of the spending because only ${pctA(hardShare)} of these test tasks are hard to check; the real market adds hard reasoning and work only frontier models can do, which this benchmark leaves out.`;
+  $("q1text").innerHTML = t;
+}
+
+function renderSeg() {
+  $("seg").innerHTML = DATA.user.map((s) =>
+    `<button type="button" data-k="${s.key}" aria-pressed="${s.key === segKey}">${esc(s.label)}</button>`).join("");
+  $("seg").querySelectorAll("button").forEach((b) => b.onclick = () => { segKey = b.dataset.k; inspect = null; shown = 12; render(); });
+}
+
+function render() {
+  renderSeg();
+  const S = seg();
+  const opts = S.options;
+  const ranked = [...opts].sort((a, b) => perTask(a) - perTask(b) || b.correct - a.correct);
+  const best = ranked[0];
+  const cheapest = [...opts].sort((a, b) => a.total_cost - b.total_cost)[0];
+  if (!inspect || !opts.some((o) => o.id === inspect)) inspect = best.id;
+
+  // the answer
+  let ans = `For ${esc(S.label.toLowerCase())}, use <b>${esc(best.title)}</b>. It got ${best.correct} of ${best.n} right, at ${usd(per1k(best.cpst))} of AI spend per 1,000 correct answers.`;
+  let sub = "";
+  const k1 = (x) => usd(x * 1000 / best.n);
+  if (cheapest.id !== best.id && cheapest.wrong > best.wrong) {
+    sub = `${esc(cheapest.title)} has a smaller AI bill (${k1(cheapest.total_cost)} versus ${k1(best.total_cost)} per 1,000 tasks), but ${cheapest.wrong} of its ${cheapest.n} answers were wrong and still passed every automatic check.`;
+    if (cw > 0) sub += ` At ${usd(cw)} per slipped mistake, cleaning those up adds ${k1(cheapest.wrong * cw)} per 1,000 tasks, against ${k1(best.wrong * cw)} for ${esc(best.title)}.`;
+    const be = (best.total_cost / best.n - cheapest.total_cost / cheapest.n - (cheapest.gave_up - best.gave_up) / best.n * cm)
+             / ((cheapest.wrong - best.wrong) / best.n);
+    if (be > 0) sub += ` The cheaper option only wins if a slipped mistake costs you less than ${usd(be)}.`;
+  } else if (cheapest.id !== best.id) {
+    sub = `${esc(cheapest.title)} has a smaller AI bill, but it gave up on ${cheapest.gave_up} tasks you would have to do yourself.`;
+  } else if (best.kind === "smart") {
+    const esc_ = best.ledger.filter((x) => new Set(x.steps.map((s) => s.m)).size > 1).length;
+    sub = `Smart routing tries the cheap model first and only pays for the bigger one when the check rejects an answer, which happened on ${Math.round(100 * esc_ / best.n)}% of tasks.`;
+  } else if (best.wrong === 0) {
+    sub = `It is also the cheapest option here. Its mistakes were caught by the automatic check, so retries did the cleanup for you.`;
+  } else {
+    sub = `It is also the cheapest option here. Its ${best.wrong} slipped mistakes cost less to clean up than paying for a stronger model.`;
+  }
+  const singles = opts.filter((o) => o.kind === "single" && o.cpst !== null);
+  const pr = DATA.meta.prices || {};
+  const sticker1 = [...singles].sort((a, b) => (pr[a.id]?.out ?? 0) - (pr[b.id]?.out ?? 0))[0];
+  const perCorrect1 = [...singles].sort((a, b) => a.cpst - b.cpst)[0];
+  if (sticker1 && perCorrect1 && sticker1.id !== perCorrect1.id)
+    sub += ` Note the flip: ${esc(sticker1.title)} has the lowest sticker price, but ${esc(perCorrect1.title)} is cheaper per correct answer (${usd(per1k(perCorrect1.cpst))} versus ${usd(per1k(sticker1.cpst))} per 1,000) because it needs fewer retries.`;
+  if (!S.routing_helps) sub += ` Smart routing is not shown because no cheaper mix matched the best model’s accuracy here: too many wrong answers pass the check for a cheap model to be trusted.`;
+  $("answer").innerHTML = ans; $("answerSub").innerHTML = sub;
+  $("cwv").textContent = usd(cw); $("cmv").textContent = usd(cm);
+
+  // option cards
+  $("options").innerHTML = ranked.map((o) => {
+    const w = (x) => (100 * x / o.n).toFixed(2) + "%";
+    return `<article class="opt${o.id === best.id ? " best" : ""}">
+      <div class="top"><h3>${esc(o.title)}</h3>${o.id === best.id ? '<span class="badge">Best for you</span>' : ""}</div>
+      <span class="wt ${wkind(o)}">${wlabel(o)}</span>
+      <div class="how">${esc(o.how)}</div>
+      <div><div class="big">${usd(per1k(o.cpst))}</div><div class="big-lab">AI cost per 1,000 correct answers</div></div>
+      <div class="bar" role="img" aria-label="${o.correct} right, ${o.wrong} looked right but were wrong, ${o.gave_up} gave up">
+        <span class="r" style="width:${w(o.correct)}"></span><span class="w" style="width:${w(o.wrong)}"></span><span class="g" style="width:${w(o.gave_up)}"></span></div>
+      <div class="bar-lab">${o.correct} of ${o.n} right${o.wrong ? `, <span class="w">${o.wrong} looked right but were wrong</span>` : ""}${o.gave_up ? `, ${o.gave_up} gave up` : ""}</div>
+      <div class="sticker">${esc(sticker(o))}. Average ${o.tries.toFixed(1)} calls per task.</div>
+      <div class="total"><span>Your total per 1,000 tasks, with cleanup</span><strong>${usd(perTask(o) * 1000)}</strong></div>
+      <button type="button" data-id="${o.id}">See every call it made</button>
+    </article>`;
+  }).join("");
+  $("options").querySelectorAll("button").forEach((b) => b.onclick = () => {
+    inspect = b.dataset.id; filter = "all"; shown = 12; renderMeter(); $("meterTitle").scrollIntoView();
+  });
+  renderQ1();
+  renderMeter();
+  renderProvider();
+}
+
+function renderMeter() {
+  const S = seg(), opts = S.options, o = opts.find((x) => x.id === inspect);
+  $("pick").innerHTML = opts.map((x) => `<option value="${x.id}"${x.id === o.id ? " selected" : ""}>${esc(x.title)}</option>`).join("");
+  $("pick").onchange = (e) => { inspect = e.target.value; shown = 12; renderMeter(); };
+  const counts = {all: o.n, correct: o.correct, wrong: o.wrong, gave_up: o.gave_up};
+  $("filters").innerHTML = ["all", "correct", "wrong", "gave_up"].filter((k) => k === "all" || counts[k])
+    .map((k) => `<button type="button" data-f="${k}" aria-pressed="${k === filter}">${k === "all" ? "All" : OUT[k]} (${counts[k]})</button>`).join("");
+  $("filters").querySelectorAll("button").forEach((b) => b.onclick = () => { filter = b.dataset.f; shown = 12; renderMeter(); });
+
+  const calls = o.ledger.reduce((s, x) => s + x.steps.length, 0);
+  const failedCost = o.ledger.reduce((s, x) => s + x.steps.reduce((t, st) => t + (st.v && st.c ? 0 : st.cost), 0), 0);
+  $("tally").innerHTML = `<div>${esc(o.title)} ran ${o.n} tasks with ${calls} model calls. ${usd(failedCost)} of the ${usd(o.total_cost)} spent went to calls that did not produce a right answer.</div>
+    <div class="eq">${usd(o.total_cost)} spent ÷ ${o.correct} right answers = <strong>${usd(o.cpst)}</strong> per correct answer</div>`;
+
+  const rows = o.ledger.filter((x) => filter === "all" || x.outcome === filter);
+  $("ledger").innerHTML = rows.slice(0, shown).map((x) => {
+    let prev = null;
+    const marks = x.steps.map((s) => {
+      const cls = !s.v ? "rej" : s.c ? "ok" : "bad", sym = !s.v ? "✕" : s.c ? "✓" : "!";
+      const sw = prev !== null && prev !== s.m ? " sw" : ""; prev = s.m;
+      return `<span class="mk ${cls}${sw}" title="${esc(label(s.m))}: ${!s.v ? "rejected by the check" : s.c ? "right" : "passed the check but wrong"}">${sym}</span>`;
+    }).join("");
+    const detail = x.steps.map((s, i) => {
+      const why = (s.why || "failed the check").replace(/\b(invoice_number|invoice_date|due_date|subtotal|tax_rate_pct|total_due|vendor|customer)\b/g, (k) => FIELD[k] || k);
+      let note = !s.v ? `Rejected: ${esc(why)}` : s.c ? "Passed the check and was right" : "Passed the check, but was wrong";
+      if (s.wrong && s.v) note += `: <span class="why-bad">${Object.entries(s.wrong).map(([k, [g, w]]) => `said ${esc(FIELD[k] || k)} ${esc(fmtVal(k, g))}, actually ${esc(fmtVal(k, w))}`).join("; ")}</span>`;
+      const [f, c, wr, out] = s.tok;
+      return `<tr><td>${i + 1}</td><td>${esc(label(s.m))}</td><td class="n">${(f + wr).toLocaleString()} new, ${c.toLocaleString()} reused</td><td class="n">${out.toLocaleString()}</td><td class="n">${usd(s.cost)}</td><td>${note}</td></tr>`;
+    }).join("");
+    return `<details><summary><span class="out ${x.outcome}">${OUT[x.outcome]}</span><span class="pv">${esc(x.preview)}</span><span class="marks">${marks}</span><span class="lcost">${usd(x.cost)}</span></summary>
+      <div class="steps"><table><thead><tr><th>Call</th><th>Model</th><th>Input tokens</th><th>Output tokens</th><th>Cost</th><th>What happened</th></tr></thead><tbody>${detail}</tbody></table></div></details>`;
+  }).join("") || `<p>No tasks in this group.</p>`;
+  const more = $("more");
+  if (rows.length > shown) { more.hidden = false; more.textContent = `Show all ${rows.length} tasks`; more.onclick = () => { shown = rows.length; renderMeter(); }; }
+  else more.hidden = true;
+}
+
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+function renderProvider() {
+  const S = seg();
+  const base = S.options.find((o) => o.id === S.best_alone) || S.options[S.options.length - 1];
+  const rt = S.options.find((o) => o.kind === "smart") || base;
+  const m = +$("margin").value, on = $("billon").value;
+  $("marginv").textContent = Math.round(m * 100) + "%";
+  const k = 1000 / base.n;
+  const wasted = base.ledger.reduce((s, x) => s + x.steps.reduce((t, st) => t + (st.v && st.c ? 0 : st.cost), 0), 0);
+  const price = rt.cpst / (1 - m);
+  const units = on === "correct" ? rt.correct : rt.correct + rt.wrong;
+  const custPerCorrect = price * units / rt.correct;
+  const outs = rt.ledger.map((x) => [x.cost, x.outcome !== "gave_up" ? 1 : 0, x.outcome === "correct" ? 1 : 0]);
+  const r = rng(7); let loss = 0;
+  for (let b = 0; b < 2000; b++) { let rev = 0, cost = 0;
+    for (let i = 0; i < 100; i++) { const o = outs[(r() * outs.length) | 0]; cost += o[0]; rev += price * (on === "correct" ? o[2] : o[1]); }
+    if (rev < cost) loss++; }
+  $("bills").innerHTML = `
+    <div class="bill"><h3>Per token, as today</h3><p class="hint">${esc(base.title)} only, 1,000 tasks</p>
+      <div class="line"><span>Token charges</span><span>${usd(base.total_cost * k)}</span></div>
+      <div class="line waste"><span>Spent on calls that bought nothing</span><span>${usd(wasted * k)}</span></div>
+      <div class="tot"><span>Customer pays per correct answer</span><span>${usd(base.cpst)}</span></div></div>
+    <div class="bill"><h3>Per correct answer</h3><p class="hint">${esc(rt.title)}, 1,000 tasks</p>
+      <div class="line"><span>Price per ${on === "correct" ? "accepted answer" : "answer that passes the check"}</span><span>${usd(price)}</span></div>
+      <div class="line free"><span>Failed calls charged to the customer</span><span>$0</span></div>
+      <div class="tot"><span>Customer pays per correct answer</span><span>${usd(custPerCorrect)}</span></div></div>`;
+  const save = 1 - custPerCorrect / base.cpst;
+  $("risk").innerHTML = `The customer pays ${save >= 0 ? `${Math.round(save * 100)}% less` : `${Math.round(-save * 100)}% more`} per correct answer than today. The chance a batch of 100 tasks loses the provider money is ${(100 * loss / 2000).toFixed(1)}%.`
+    + (on === "verified" && rt.wrong ? ` Charging for answers that pass the check also bills the customer for ${Math.round(rt.wrong * k)} wrong answers per 1,000.` : "");
+}
+
+(function init() {
+  const m = DATA.meta || {};
+  if (m.mock) $("banner").innerHTML = `<div class="banner">These numbers come from simulated models and only show how the instrument works. A real run replaces them.</div>`;
+  $("cw").value = STEPS.indexOf(cw); $("cm").value = STEPS.indexOf(cm);
+  $("cw").oninput = (e) => { cw = STEPS[+e.target.value]; render(); };
+  $("cw2").oninput = (e) => { cw = STEPS[+e.target.value]; render(); $("cw2").focus(); };
+  $("cm").oninput = (e) => { cm = STEPS[+e.target.value]; render(); };
+  $("margin").oninput = renderProvider; $("billon").onchange = renderProvider;
+  $("foot").innerHTML = `<p>Models: ${esc((DATA.models || []).map(label).join(", "))}. Each model gets up to ${esc(m.d)} tries per task, retrying when the automatic check rejects its answer. ${esc(m.n_per_family)} tasks per family, run ${esc(m.started || "")}.</p>
+    <p>Smart routing is the cheapest mix of models whose accuracy is within two points of the most capable model alone. Totals with cleanup use the two costs you set above.</p>`;
+  render();
+})();
+</script>
+</body>
+</html>
